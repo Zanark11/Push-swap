@@ -3,26 +3,25 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"push-swap/pile"
 )
 
-func main() {
+// verifier contrôle les instructions et vérifie le résultat du tri
+func verifier(arguments []string, entree io.Reader, sortie io.Writer, erreur io.Writer) {
 
 	// On vérifie si des arguments ont été fournis
-	if len(os.Args) < 2 {
+	if len(arguments) == 0 {
 		return
 	}
-
-	// On récupère les arguments
-	arguments := os.Args[1:]
 
 	// On convertit et vérifie les arguments
 	nombres, err := pile.ConvertirArguments(arguments)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error")
+		fmt.Fprintln(erreur, "Error")
 		return
 	}
 
@@ -30,7 +29,7 @@ func main() {
 	piles := pile.InitialiserPiles(nombres)
 
 	// On prépare la lecture des instructions
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(entree)
 
 	// On lit les instructions une par une
 	for scanner.Scan() {
@@ -62,21 +61,26 @@ func main() {
 		case "rrr":
 			pile.Rrr(&piles)
 		default:
-			fmt.Fprintln(os.Stderr, "Error")
+			fmt.Fprintln(erreur, "Error")
 			return
 		}
 	}
 
 	// On vérifie si la lecture s'est terminée correctement
 	if scanner.Err() != nil {
-		fmt.Fprintln(os.Stderr, "Error")
+		fmt.Fprintln(erreur, "Error")
 		return
 	}
 
 	// On vérifie si la pile A est triée et si la pile B est vide
 	if pile.EstTriee(piles) {
-    	fmt.Println("OK")
+		fmt.Fprintln(sortie, "OK")
 	} else {
-    	fmt.Println("KO")
+		fmt.Fprintln(sortie, "KO")
 	}
+}
+
+// main lance le checker avec les entrées et sorties du terminal
+func main() {
+	verifier(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)
 }
